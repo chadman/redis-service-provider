@@ -1,0 +1,51 @@
+@model List<KeyValuePair<string, string>>
+
+@{
+    ViewBag.Title = "Home Page";
+}
+
+@section featured {
+<section class="featured">
+    <div class="content-wrapper">
+        <hgroup class="title">
+            <h1>@ViewBag.Title.</h1>
+            <h2>@ViewBag.Message</h2>
+        </hgroup>
+        <p>
+            To learn more about ASP.NET MVC visit <a href="http://asp.net/mvc" title="ASP.NET MVC Website">http://asp.net/mvc</a>. 
+            The page features <span class="highlight">videos, tutorials, and samples</span> to help you get the most from 
+            ASP.NET MVC. If you have any questions about ASP.NET MVC visit 
+            <a href="http://forums.asp.net/1146.aspx/1?MVC" title="ASP.NET MVC Forum">our forums</a>.
+        </p>
+    </div>
+</section>
+}
+
+<section class="features">
+    <section class="feature">
+        <div id="session_values">
+        @Html.Partial("_sessionItems", this.Model)
+        </div>
+    </section>
+    <section class="feature">
+        @using (Ajax.BeginForm("Index", "Home", new AjaxOptions { HttpMethod = "POST", OnSuccess = "update_form" })) {
+            <text>Key: </text>@Html.TextBox("key") <br />
+            <text>Value: </text>@Html.TextBox("value")<br />
+            <input type="submit" value="Save" />
+        }
+    </section>
+    <section class="feature">
+        <img src="~/Images/findHosting.png" alt="" />
+        <h3>Find Web Hosting</h3>
+        <p>
+            You can easily find a web hosting company that offers the right mix of features and price for your applications. 
+            Visit <a href="http://microsoft.com/web/hosting" title="Microsoft/Web Website">Microsoft.com/web</a> to 
+            explore offerings from many providers.
+        </p>
+    </section>
+</section>
+<script>
+    function update_form(html) {
+        $('#session_values').html(html);
+    }
+</script>

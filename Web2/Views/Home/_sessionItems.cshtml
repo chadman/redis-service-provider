@@ -1,0 +1,14 @@
+﻿@model List<KeyValuePair<string, string>>
+
+@helper WriteSessionsVariables() {
+    
+    System.Text.StringBuilder sb = new System.Text.StringBuilder();
+    
+    this.Model.ForEach(delegate (KeyValuePair<string, string> currentItem) {
+        sb.Append(currentItem.Key).Append(": ").Append(currentItem.Value);
+    });
+    
+    @sb.ToString();
+}
+
+@WriteSessionsVariables()
