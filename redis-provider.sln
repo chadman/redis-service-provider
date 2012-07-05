@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RedisProvider", "RedisProvider\RedisProvider.csproj", "{BFE6562E-68BE-420A-AA4B-613FF93B5578}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x86 = Debug|x86
+		MonoTouch|Any CPU = MonoTouch|Any CPU
+		MonoTouch|x86 = MonoTouch|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x86 = Release|x86
+		STATIC_ONLY NO_EXPRESSIONS|Any CPU = STATIC_ONLY NO_EXPRESSIONS|Any CPU
+		STATIC_ONLY NO_EXPRESSIONS|x86 = STATIC_ONLY NO_EXPRESSIONS|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BFE6562E-68BE-420A-AA4B-613FF93B5578}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BFE6562E-68BE-420A-AA4B-613FF93B5578}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BFE6562E-68BE-420A-AA4B-613FF93B5578}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{BFE6562E-68BE-420A-AA4B-613FF93B5578}.MonoTouch|Any CPU.ActiveCfg = Release|Any CPU
+		{BFE6562E-68BE-420A-AA4B-613FF93B5578}.MonoTouch|Any CPU.Build.0 = Release|Any CPU
+		{BFE6562E-68BE-420A-AA4B-613FF93B5578}.MonoTouch|x86.ActiveCfg = Release|Any CPU
+		{BFE6562E-68BE-420A-AA4B-613FF93B5578}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BFE6562E-68BE-420A-AA4B-613FF93B5578}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BFE6562E-68BE-420A-AA4B-613FF93B5578}.Release|x86.ActiveCfg = Release|Any CPU
+		{BFE6562E-68BE-420A-AA4B-613FF93B5578}.STATIC_ONLY NO_EXPRESSIONS|Any CPU.ActiveCfg = Release|Any CPU
+		{BFE6562E-68BE-420A-AA4B-613FF93B5578}.STATIC_ONLY NO_EXPRESSIONS|Any CPU.Build.0 = Release|Any CPU
+		{BFE6562E-68BE-420A-AA4B-613FF93B5578}.STATIC_ONLY NO_EXPRESSIONS|x86.ActiveCfg = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
