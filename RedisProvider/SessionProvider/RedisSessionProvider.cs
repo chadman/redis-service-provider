@@ -13,23 +13,6 @@ using System.IO;
 
 namespace RedisProvider.SessionProvider {
 
-    #region Repository
-    public interface IRedisServiceProviderRepository {
-        RedisClient OpenRedisClient();
-    }
-
-    public class RedisServiceProviderRepository : IRedisServiceProviderRepository {
-
-        /// <summary>
-        /// This will be used to open a redis connection with specific connection string information
-        /// </summary>
-        /// <returns></returns>
-        public RedisClient OpenRedisClient() {
-            return new RedisClient();
-        }
-    }
-    #endregion Repository
-
     #region Session Item Model
     public class SessionItem {
 
@@ -49,8 +32,6 @@ namespace RedisProvider.SessionProvider {
     public class CustomServiceProvider : System.Web.SessionState.SessionStateStoreProviderBase, IDisposable {
 
         #region Properties
-        public IRedisServiceProviderRepository Repository { get; set; }
-
         private string ApplicationName {
             get {
                 if (ConfigurationManager.AppSettings.AllKeys.Contains("Application.Name")) {
@@ -60,7 +41,23 @@ namespace RedisProvider.SessionProvider {
                 return string.Empty;
             }
         }
+
+        private RedisClient RedisSessionClient {
+            get {
+
+                if (!string.IsNullOrEmpty(this.redisPassword)) {
+                    return new RedisClient(this.redisServer, this.redisPort, this.redisPassword);
+                }
+
+                return new RedisClient(this.redisServer, this.redisPort);
+            }
+        }
+
+        private string redisServer = "localhost";
+        private int redisPort = 6379;
+        private string redisPassword = string.Empty;
         private SessionStateSection sessionStateConfig = null;
+        private bool writeExceptionsToLog = false;
         #endregion Properties
 
         #region Private Methods
@@ -69,15 +66,14 @@ namespace RedisProvider.SessionProvider {
         }
         #endregion Private Methods
         
-
         #region Constructor
         public CustomServiceProvider() {
-            this.Repository = new RedisServiceProviderRepository();
+
         }
         #endregion Constructor
 
         public override void Dispose() {
-            
+
         }
 
         public override void Initialize(string name, NameValueCollection config) {
@@ -103,6 +99,24 @@ namespace RedisProvider.SessionProvider {
             // Get <sessionState> configuration element.
             Configuration cfg = WebConfigurationManager.OpenWebConfiguration(ApplicationName);
             sessionStateConfig = (SessionStateSection)cfg.GetSection("system.web/sessionState");
+
+
+            if (config["writeExceptionsToEventLog"] != null) {
+                if (config["writeExceptionsToEventLog"].ToUpper() == "TRUE")
+                    this.writeExceptionsToLog = true;
+            }
+
+            if (config["server"] != null) {
+                this.redisServer = config["server"];
+            }
+
+            if (config["port"] != null) {
+                int.TryParse(config["port"], out this.redisPort);
+            }
+
+            if (config["password"] != null) {
+                this.redisPassword = config["password"];
+            }
         }
 
         public override bool SetItemExpireCallback(SessionStateItemExpireCallback expireCallback) {
@@ -127,7 +141,7 @@ namespace RedisProvider.SessionProvider {
         }
 
         public override void SetAndReleaseItemExclusive(HttpContext context, string id, SessionStateStoreData item, object lockId, bool newItem) {
-            using (RedisClient client = this.Repository.OpenRedisClient()) {
+            using (RedisClient client = this.RedisSessionClient) {
                 // Serialize the SessionStateItemCollection as a string.
                 string sessionItems = Serialize((SessionStateItemCollection)item.Items);
 
@@ -188,7 +202,7 @@ namespace RedisProvider.SessionProvider {
             // Timeout value from the data store.
             int timeout = 0;
 
-            using (RedisClient client = this.Repository.OpenRedisClient()) {
+            using (RedisClient client = this.RedisSessionClient) {
                 try {
                     if (lockRecord) {
                         locked = false;
@@ -268,7 +282,7 @@ namespace RedisProvider.SessionProvider {
 
         public override void ReleaseItemExclusive(HttpContext context, string id, object lockId) {
 
-            using (RedisClient client = this.Repository.OpenRedisClient()) {
+            using (RedisClient client = this.RedisSessionClient) {
                 SessionItem currentSessionItem = client.Get<SessionItem>(this.RedisKey(id));
 
                 if (currentSessionItem != null && (int?)lockId == currentSessionItem.LockID) {
@@ -279,14 +293,14 @@ namespace RedisProvider.SessionProvider {
         }
 
         public override void RemoveItem(HttpContext context, string id, object lockId, SessionStateStoreData item) {
-            using (RedisClient client = this.Repository.OpenRedisClient()) {
+            using (RedisClient client = this.RedisSessionClient) {
                 // Delete the old item before inserting the new one
                 client.Remove(this.RedisKey(id));
             }
         }
 
         public override void CreateUninitializedItem(HttpContext context, string id, int timeout) {
-            using (RedisClient client = this.Repository.OpenRedisClient()) {
+            using (RedisClient client = this.RedisSessionClient) {
                 SessionItem sessionItem = new SessionItem();
                 sessionItem.CreatedAt = DateTime.Now.ToUniversalTime();
                 sessionItem.LockDate = DateTime.Now.ToUniversalTime();
@@ -308,7 +322,7 @@ namespace RedisProvider.SessionProvider {
 
         public override void ResetItemTimeout(HttpContext context,  string id) {
 
-            using (RedisClient client = this.Repository.OpenRedisClient()) {
+            using (RedisClient client = this.RedisSessionClient) {
                 try {
                     // TODO :: GET THIS VALUE FROM THE CONFIG
                     client.ExpireEntryAt(id, DateTime.UtcNow.AddMinutes(sessionStateConfig.Timeout.TotalMinutes));
