@@ -61,6 +61,11 @@ namespace RedisProvider.SessionProvider {
         #endregion Properties
 
         #region Private Methods
+        /// <summary>
+        /// Prepends the application name to the redis key if one exists. Querying by application name is recommended for session
+        /// </summary>
+        /// <param name="id">The session id</param>
+        /// <returns>Concatenated string applicationname:sessionkey</returns>
         private string RedisKey(string id) {
             return string.Format("{0}{1}", !string.IsNullOrEmpty(this.ApplicationName) ? this.ApplicationName + ":" : "", id);
         }
@@ -72,6 +77,7 @@ namespace RedisProvider.SessionProvider {
         }
         #endregion Constructor
 
+        #region Overrides
         public override void Dispose() {
 
         }
@@ -121,23 +127,6 @@ namespace RedisProvider.SessionProvider {
 
         public override bool SetItemExpireCallback(SessionStateItemExpireCallback expireCallback) {
             return true;
-        }
-
-        /// <summary>
-        /// Serialize is called by the SetAndReleaseItemExclusive method to
-        /// convert the SessionStateItemCollection into a Base64 string to
-        /// be stored in MongoDB.
-        /// </summary>
-        private string Serialize(SessionStateItemCollection items) {
-            using (MemoryStream ms = new MemoryStream())
-            using (BinaryWriter writer = new BinaryWriter(ms)) {
-                if (items != null)
-                    items.Serialize(writer);
-
-                writer.Close();
-
-                return Convert.ToBase64String(ms.ToArray());
-            }
         }
 
         public override void SetAndReleaseItemExclusive(HttpContext context, string id, SessionStateStoreData item, object lockId, bool newItem) {
@@ -263,23 +252,6 @@ namespace RedisProvider.SessionProvider {
             return item;
         }
 
-
-        private SessionStateStoreData Deserialize(HttpContext context,  string serializedItems, int timeout) {
-            using (MemoryStream ms = new MemoryStream(Convert.FromBase64String(serializedItems))) {
-                SessionStateItemCollection sessionItems = new SessionStateItemCollection();
-
-                if (ms.Length > 0) {
-                    using (BinaryReader reader = new BinaryReader(ms)) {
-                        sessionItems = SessionStateItemCollection.Deserialize(reader);
-                    }
-                }
-
-                return new SessionStateStoreData(sessionItems,
-                  SessionStateUtility.GetSessionStaticObjects(context),
-                  timeout);
-            }
-        }
-
         public override void ReleaseItemExclusive(HttpContext context, string id, object lockId) {
 
             using (RedisClient client = this.RedisSessionClient) {
@@ -340,5 +312,41 @@ namespace RedisProvider.SessionProvider {
         public override void EndRequest(HttpContext context) {
             this.Dispose();
         }
+#endregion Overrides
+
+        #region Serialization
+        /// <summary>
+        /// Serialize is called by the SetAndReleaseItemExclusive method to
+        /// convert the SessionStateItemCollection into a Base64 string to
+        /// be stored in MongoDB.
+        /// </summary>
+        private string Serialize(SessionStateItemCollection items) {
+            using (MemoryStream ms = new MemoryStream())
+            using (BinaryWriter writer = new BinaryWriter(ms)) {
+                if (items != null)
+                    items.Serialize(writer);
+
+                writer.Close();
+
+                return Convert.ToBase64String(ms.ToArray());
+            }
+        }
+
+        private SessionStateStoreData Deserialize(HttpContext context, string serializedItems, int timeout) {
+            using (MemoryStream ms = new MemoryStream(Convert.FromBase64String(serializedItems))) {
+                SessionStateItemCollection sessionItems = new SessionStateItemCollection();
+
+                if (ms.Length > 0) {
+                    using (BinaryReader reader = new BinaryReader(ms)) {
+                        sessionItems = SessionStateItemCollection.Deserialize(reader);
+                    }
+                }
+
+                return new SessionStateStoreData(sessionItems,
+                  SessionStateUtility.GetSessionStaticObjects(context),
+                  timeout);
+            }
+        }
+        #endregion Serialization
     }
 }
